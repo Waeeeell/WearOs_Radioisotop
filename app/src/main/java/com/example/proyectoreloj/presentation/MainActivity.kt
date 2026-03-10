@@ -3,8 +3,15 @@ package com.example.proyectoreloj.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Scaffold
+import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
@@ -18,7 +25,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ProyectoRelojTheme {
-                WearApp()
+                // Usamos un Box con fondo negro/tema para asegurar que no haya transparencia
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colors.background)
+                ) {
+                    Scaffold(
+                        timeText = { TimeText() }
+                    ) {
+                        WearApp()
+                    }
+                }
             }
         }
     }
@@ -27,8 +45,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WearApp() {
     val navController = rememberSwipeDismissableNavController()
-
-    // Shared ViewModel — both Home and Activity screens read from the same instance
     val motivationalViewModel: MotivationalViewModel = viewModel()
 
     SwipeDismissableNavHost(
@@ -38,46 +54,24 @@ fun WearApp() {
         composable(Screen.HOME) {
             HomeScreen(
                 motivationalViewModel = motivationalViewModel,
-                onNavigateToActivity = {
-                    navController.navigate(Screen.ACTIVITY)
-                },
-                onNavigateToSos = {
-                    navController.navigate(Screen.SOS)
-                },
-                onNavigateToEcg = {
-                    navController.navigate(Screen.ECG_INTRO)
-                }
+                onNavigateToActivity = { navController.navigate(Screen.ACTIVITY) },
+                onNavigateToSos = { navController.navigate(Screen.SOS) },
+                onNavigateToEcg = { navController.navigate(Screen.ECG_INTRO) }
             )
         }
-
         composable(Screen.ACTIVITY) {
-            ActivityScreen(
-                motivationalViewModel = motivationalViewModel
-            )
+            ActivityScreen(motivationalViewModel = motivationalViewModel)
         }
-
         composable(Screen.SOS) {
-            SosScreen(
-                onDismiss = {
-                    navController.popBackStack()
-                }
-            )
+            SosScreen(onDismiss = { navController.popBackStack() })
         }
-
         composable(Screen.ECG_INTRO) {
-            EcgIntroScreen(
-                onStartEcg = {
-                    navController.navigate(Screen.ECG_RECORDING)
-                }
-            )
+            EcgIntroScreen(onStartEcg = { navController.navigate(Screen.ECG_RECORDING) })
         }
-
         composable(Screen.ECG_RECORDING) {
-            EcgRecordingScreen(
-                onFinished = {
-                    navController.popBackStack(Screen.HOME, inclusive = false)
-                }
-            )
+            EcgRecordingScreen(onFinished = {
+                navController.popBackStack(Screen.HOME, inclusive = false)
+            })
         }
     }
 }
